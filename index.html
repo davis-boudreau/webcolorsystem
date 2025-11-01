@@ -1,24 +1,285 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Web Color System Studio v3</title>
-  <!-- 
-    Web Color System Studio v3
-    Author: Davis Boudreau
-    License: MIT
-    Description: Pure CSS OKLCH-based color system generator and live preview tool.
-    Vision: Educational, Accessible, and Framework-Free.
-    Date: November 01, 2025
-  -->
-  <link rel="stylesheet" href="style.css">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="stylesheet" type="text/css" href="styles.css">
+<title>Web Color System Studio</title>
+<!-- This style block will be filled programmatically with generated tokens -->
+<style id="dynamicTokens"></style>
 </head>
 <body>
-  <main role="main" style="padding:24px;font-family:system-ui">
-    <h1>Web Color System Studio v3</h1>
-    <p>This repository contains the Web Color System Studio v3. Open the full tool locally by using the complete files (index.html, style.css, app.js).</p>
-  </main>
-  <script src="app.js"></script>
+  <div class="wrap">
+    <h1>OKLCH Ramp Builder + Live Preview</h1>
+    <div class="layout">
+
+      <!-- LEFT: Controls + Outputs -->
+      <div class="stack card">
+        <div class="card">
+          <h2>Inputs</h2>
+          <label for="seedHex">Seed HEX (brand)</label>
+          <input id="seedHex" type="text" value="#7B458F" />
+
+          <div class="row">
+            <div style="flex:1 1 140px">
+              <label for="brandHue">Brand Hue (°) <span class="muted">(optional)</span></label>
+              <input id="brandHue" type="number" placeholder="auto from seed" step="1" min="0" max="360" />
+            </div>
+            <div style="flex:1 1 140px">
+              <label for="brandChroma">Brand Mid-Chroma (C) <span class="muted">(optional)</span></label>
+              <input id="brandChroma" type="number" placeholder="auto from seed" step="0.01" min="0" max="0.45" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div style="flex:1 1 140px">
+              <label for="neutralHue">Neutral Hue (°)</label>
+              <input id="neutralHue" type="number" value="280" step="1" min="0" max="360" />
+              <div class="muted tiny">Cool ≈ 260–290 • Warm ≈ 40–60</div>
+            </div>
+            <div style="flex:1 1 140px">
+              <label for="neutralChroma">Neutral Chroma (C)</label>
+              <input id="neutralChroma" type="number" value="0.01" step="0.005" min="0" max="0.08" />
+              <div class="muted tiny">Keep small (0.01–0.02) for gray</div>
+            </div>
+          </div>
+
+          <label for="brandLs">Brand Lightness stops (L) – 10 values for 50→900</label>
+          <textarea id="brandLs">0.98,0.93,0.86,0.78,0.70,0.62,0.54,0.46,0.38,0.30</textarea>
+          <span class="muted tiny">Aim ~0.07–0.08 apart in the middle; smaller steps toward the dark end.</span>
+
+          <label for="neutralLs">Neutral Lightness stops (L) – 12 values for 25→950</label>
+          <textarea id="neutralLs">0.99,0.97,0.93,0.87,0.80,0.72,0.63,0.53,0.42,0.31,0.20,0.12</textarea>
+
+          <div class="row" style="margin-top:12px">
+            <button id="runBtn" class="btn">Generate Ramps</button>
+            <a id="downloadJson" class="btn secondary" download="oklch-ramps.json" href="#" aria-disabled="true">Download JSON</a>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="toolbar">
+            <h2 style="margin:0">CSS Variables</h2>
+            <button id="copyCssBtn" class="btn small tertiary" type="button">Copy CSS</button>
+          </div>
+          <pre id="cssOut">/* Generate to see variables here */</pre>
+        </div>
+
+        <div class="card">
+          <h2>JSON Output</h2>
+          <pre id="jsonOut">{}</pre>
+        </div>
+
+        <div class="card">
+          <h2>Brand Ramp (HEX)</h2>
+          <div id="brandSwatches" class="swatches"></div>
+          <table id="brandTable" style="margin-top:10px">
+            <thead><tr><th>Token</th><th>HEX</th><th>L</th><th>C</th><th>H</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <h2>Neutral Ramp (HEX)</h2>
+          <div id="neutralSwatches" class="swatches"></div>
+          <table id="neutralTable" style="margin-top:10px">
+            <thead><tr><th>Token</th><th>HEX</th><th>L</th><th>C</th><th>H</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- RIGHT: Live Preview -->
+      <div class="preview">
+        <!-- Toolbar -->
+        <div class="card preview-toolbar">
+          <div><strong>Live Preview</strong> <span class="muted">updates when you Generate</span></div>
+          <div class="row">
+            <button id="lightBtn" class="btn secondary" type="button">Light</button>
+            <button id="darkBtn" class="btn secondary" type="button">Dark</button>
+            <span class="chip" id="brandChip">Brand: #7B458F</span>
+          </div>
+        </div>
+
+        <!-- Canvas -->
+        <div class="preview-canvas" id="previewRoot" data-theme="light">
+
+          <!-- Header (brand + nav + modal trigger) -->
+          <div class="preview-header">
+            <div class="brand"><span class="chip">◆ Brand</span></div>
+            <nav class="nav" aria-label="Primary">
+              <a href="#" class="nav-link" aria-current="page">Home</a>
+              <a href="#" class="nav-link">Products</a>
+              <a href="#" class="nav-link">Docs</a>
+            </nav>
+            <button class="button button--outline" type="button" id="openModalBtn">Open Modal</button>
+          </div>
+
+          <!-- Hero -->
+          <div class="hero">
+            <h2>OKLCH Colors in Action</h2>
+            <p>This preview uses <code>brand-600</code> as primary, with hover/active from <code>700/800</code> and neutrals for surfaces.</p>
+            <div class="hero-actions">
+              <button class="button">Primary</button>
+              <button class="button button--soft">Soft</button>
+              <button class="button button--outline">Outline</button>
+            </div>
+          </div>
+
+          <!-- UI Patterns -->
+          <div class="section">
+            <div class="grid3">
+              <!-- Cards demo -->
+              <div class="card">
+                <h3>Cards</h3>
+                <div class="grid3">
+                  <div class="card">
+                    <strong>Card A</strong>
+                    <p class="muted">Uses surface, border, text tokens.</p>
+                    <button class="button small">Action</button>
+                  </div>
+                  <div class="card">
+                    <strong>Card B</strong>
+                    <p class="muted">Hover and focus keep contrast.</p>
+                    <button class="button button--soft small">Secondary</button>
+                  </div>
+                  <div class="card">
+                    <strong>Card C</strong>
+                    <p class="muted">Outline variant stays on-brand.</p>
+                    <button class="button button--outline small">Outline</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tabs demo -->
+              <div class="card">
+                <h3>Tabs</h3>
+                <div class="tabs">
+                  <div class="tablist" role="tablist" aria-label="Sample tabs">
+                    <button class="tab" role="tab" aria-selected="true" aria-controls="tab1" id="t1">Overview</button>
+                    <button class="tab" role="tab" aria-selected="false" aria-controls="tab2" id="t2" tabindex="-1">Details</button>
+                    <button class="tab" role="tab" aria-selected="false" aria-controls="tab3" id="t3" tabindex="-1">Reviews</button>
+                  </div>
+                  <div id="tab1" class="tabpanel" role="tabpanel" aria-labelledby="t1">
+                    <p class="muted">Overview content uses body text tokens and surfaces.</p>
+                  </div>
+                  <div id="tab2" class="tabpanel" role="tabpanel" hidden aria-labelledby="t2">
+                    <p class="muted">Details content—check contrast in both themes.</p>
+                  </div>
+                  <div id="tab3" class="tabpanel" role="tabpanel" hidden aria-labelledby="t3">
+                    <p class="muted">Reviews content—links <a href="#">inherit brand color</a>.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Accordion + Sliders -->
+              <div class="card">
+                <h3>Accordion & Sliders</h3>
+                <div class="accordion" id="acc">
+                  <div class="accordion-item" aria-expanded="false">
+                    <button class="accordion-header" aria-controls="p1" id="h1">
+                      Color Settings <span aria-hidden="true">▸</span>
+                    </button>
+                    <div class="accordion-panel" id="p1" role="region" aria-labelledby="h1">
+                      <div class="range-row">
+                        <label class="label tiny">Saturation (demo)</label>
+                        <input class="slider" type="range" min="0" max="100" value="60" />
+                        <output class="muted tiny">60</output>
+                      </div>
+                      <div class="range-row">
+                        <label class="label tiny">Emphasis (demo)</label>
+                        <input class="slider" type="range" min="0" max="100" value="30" />
+                        <output class="muted tiny">30</output>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="accordion-item" aria-expanded="false">
+                    <button class="accordion-header" aria-controls="p2" id="h2">
+                      Layout Options <span aria-hidden="true">▸</span>
+                    </button>
+                    <div class="accordion-panel" id="p2" role="region" aria-labelledby="h2">
+                      <p class="muted tiny">This content shows body contrast on elevated surfaces.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Notes -->
+              <div class="card">
+                <h3>Notes</h3>
+                <p class="muted">Inline <a href="#">link</a> uses brand color; nav links behave like controls.</p>
+              </div>
+
+              <!-- Badges -->
+              <div class="card">
+                <h3>Badges</h3>
+                <div class="actions" style="flex-wrap:wrap">
+                  <span class="badge badge--brand">Brand</span>
+                  <span class="badge badge--muted">Muted</span>
+                  <span class="badge badge--success">Success</span>
+                  <span class="badge badge--warning">Warning</span>
+                  <span class="badge badge--danger">Danger</span>
+                </div>
+                <p class="muted tiny" style="margin-top:8px">
+                  These use semantic tokens mapped from your generated ramps, so they auto-update in light/dark themes.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Swatches -->
+          <div class="section">
+            <div class="grid3">
+              <div class="card">
+                <h3>Brand Swatches</h3>
+                <div id="previewBrandSwatches" class="swatches"></div>
+              </div>
+              <div class="card">
+                <h3>Neutral Swatches</h3>
+                <div id="previewNeutralSwatches" class="swatches"></div>
+              </div>
+              <div class="card">
+                <h3>Palette Tips</h3>
+                <ul class="muted tiny" style="margin:0; padding-left: 1rem">
+                  <li>Use brand-600 for action fills; 700/800 for hover/active.</li>
+                  <li>Use neutral-50/100 surfaces in light; 800/900 in dark.</li>
+                  <li>Ensure text contrast ≥ 4.5:1 (normal text).</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div class="preview-footer">
+            © 2025 • WCAG-aware tokens • OKLCH ramps • semantic mapping • cards • modal • tabs • accordion • sliders
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- dynamic token CSS goes in this <style> via JS -->
+<style id="dynamicTokens"></style>
+<div id="toast" class="toast" role="status" aria-live="polite">Copied CSS variables to clipboard.</div>
+
+<!-- Modal -->
+<div id="backdrop" class="modal-backdrop" aria-hidden="true" aria-labelledby="modalTitle" aria-describedby="modalDesc">
+  <div role="dialog" aria-modal="true" class="modal">
+    <header>
+      <h3 id="modalTitle">Modal Title</h3>
+      <button class="button button--outline small" id="closeModalBtn" aria-label="Close modal">Close</button>
+    </header>
+    <div id="modalDesc" class="muted">
+      This modal uses surface, border, and brand tokens. Check contrast in light/dark themes.
+    </div>
+    <footer>
+      <button class="button primary small" id="confirmBtn">Confirm</button>
+      <button class="button secondary small" id="cancelModalBtn">Cancel</button>
+    </footer>
+  </div>
+</div>
+ <!-- Link to an external JavaScript file -->
+    <script src="scripts.js"></script>
 </body>
 </html>
