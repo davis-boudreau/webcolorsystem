@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Web Color System Studio — Docs Preview</title>
+  <link rel="stylesheet" href="../tokens.css">
+  <link rel="stylesheet" href="preview.css">
+</head>
+<body>
+  <div class="toolbar">
+    <div class="brand">
+      <strong>Web Color System Studio</strong>
+      <span class="chip">Docs Preview</span>
+    </div>
+    <div class="actions">
+      <button id="light" class="btn secondary">Light</button>
+      <button id="dark" class="btn secondary">Dark</button>
+      <a class="btn" href="../index.html">Open Studio</a>
+      <a class="btn outline" href="../tokens.css" download>Download tokens.css</a>
+    </div>
+  </div>
+
+  <main id="previewRoot" data-theme="light">
+    <!-- Header + nav -->
+    <header class="app-header">
+      <div class="logo chip">◆ Brand</div>
+      <nav class="nav" aria-label="Primary">
+        <a href="#" class="nav-link" aria-current="page">Home</a>
+        <a href="#" class="nav-link">Components</a>
+        <a href="#" class="nav-link">Docs</a>
+      </nav>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+      <h1>See your tokens at work</h1>
+      <p class="muted">This static page mirrors the Studio’s live preview components using <code>tokens.css</code>.</p>
+      <div class="hero-actions">
+        <button class="button">Primary</button>
+        <button class="button button--soft">Soft</button>
+        <button class="button button--outline">Outline</button>
+      </div>
+    </section>
+
+    <section class="grid">
+      <!-- Cards -->
+      <article class="card">
+        <h2>Cards</h2>
+        <div class="grid grid-3">
+          <div class="card">
+            <strong>Card A</strong>
+            <p class="muted">Uses surface, border, and text tokens.</p>
+            <button class="button small">Action</button>
+          </div>
+          <div class="card">
+            <strong>Card B</strong>
+            <p class="muted">Hover and focus keep contrast.</p>
+            <button class="button button--soft small">Secondary</button>
+          </div>
+          <div class="card">
+            <strong>Card C</strong>
+            <p class="muted">Outline variant stays on-brand.</p>
+            <button class="button button--outline small">Outline</button>
+          </div>
+        </div>
+      </article>
+
+      <!-- Tabs -->
+      <article class="card">
+        <h2>Tabs</h2>
+        <div class="tabs">
+          <div class="tablist" role="tablist" aria-label="Sample tabs">
+            <button class="tab" role="tab" aria-selected="true" aria-controls="tpanel1" id="tab1">Overview</button>
+            <button class="tab" role="tab" aria-selected="false" aria-controls="tpanel2" id="tab2" tabindex="-1">Details</button>
+            <button class="tab" role="tab" aria-selected="false" aria-controls="tpanel3" id="tab3" tabindex="-1">Reviews</button>
+          </div>
+          <div id="tpanel1" class="tabpanel" role="tabpanel" aria-labelledby="tab1">
+            <p class="muted">Overview content uses body tokens on surface.</p>
+          </div>
+          <div id="tpanel2" class="tabpanel" role="tabpanel" hidden aria-labelledby="tab2">
+            <p class="muted">Details content — verify contrast in both themes.</p>
+          </div>
+          <div id="tpanel3" class="tabpanel" role="tabpanel" hidden aria-labelledby="tab3">
+            <p class="muted">Reviews content — inline <a href="#">links</a> are brand-colored.</p>
+          </div>
+        </div>
+      </article>
+
+      <!-- Badges + Alerts -->
+      <article class="card">
+        <h2>Badges & Alerts</h2>
+        <div class="row">
+          <span class="badge badge--brand">Brand</span>
+          <span class="badge badge--muted">Muted</span>
+          <span class="badge badge--success">Success</span>
+          <span class="badge badge--warning">Warning</span>
+          <span class="badge badge--danger">Danger</span>
+        </div>
+        <div class="stack" style="margin-top:10px">
+          <div class="alert alert--success">Success alert — semantic success tokens.</div>
+          <div class="alert alert--warning">Warning alert — semantic warning tokens.</div>
+          <div class="alert alert--danger">Danger alert — semantic danger tokens.</div>
+        </div>
+      </article>
+
+      <!-- Swatches -->
+      <article class="card">
+        <h2>Brand Swatches</h2>
+        <div id="brandSwatches" class="swatches"></div>
+      </article>
+      <article class="card">
+        <h2>Neutral Swatches</h2>
+        <div id="neutralSwatches" class="swatches"></div>
+      </article>
+      <article class="card">
+        <h2>Notes</h2>
+        <p class="muted tiny">This page consumes tokens from <code>../tokens.css</code>. Replace that file with your generated tokens to update everything here.</p>
+      </article>
+    </section>
+
+    <footer class="footer">
+      © 2025 • Web Color System Studio • Pure CSS • OKLCH ramps • semantic tokens
+    </footer>
+  </main>
+
+  <script src="preview.js"></script>
+</body>
+</html>
